@@ -20,4 +20,9 @@ let app =
              path "/bye" >=> OK "Bye POST"]
          GET >=> choose
             [path "/" >=> OK "Default GET"
-             path "/" >=> OK "Default POST"]]
+             path "/" >=> OK "Default POST"]
+         Authentication.authenticateBasic
+            (fun (usr, pwd) -> usr = "test" && pwd = "12345")
+            (choose
+                [GET  >=> path "/basicauth" >=> OK "Welcome GET user"
+                 POST >=> path "/basicauth" >=> OK "Welcome POST user"])]
