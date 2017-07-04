@@ -7,6 +7,7 @@
 open Fake
 open System
 open System.IO
+open System.Threading
 open Suave
 open Suave.Logging
 open Suave.Web
@@ -96,6 +97,7 @@ Target "run" (fun _ ->
 
   // Start Suave to host it on localhost
   reloadAppServer()
+  let cts = new CancellationTokenSource()
   Async.Start(server)
   // Open web browser with the loaded file
   System.Diagnostics.Process.Start("http://localhost:8083") |> ignore
@@ -104,6 +106,7 @@ Target "run" (fun _ ->
   use watcher = {BaseDirectory = (sprintf "%s/suavalicious" __SOURCE_DIRECTORY__); Includes = ["*.*"]; Excludes = []} |> WatchChanges (fun _ -> reloadAppServer())
   traceImportant "Waiting for suavalicious.fsx edits. Press any key to stop."
   System.Console.ReadLine() |> ignore
+  cts.Cancel()
 )
 //////////////////////////////////////////////////////////////////////////////
 // Build order
@@ -111,5 +114,8 @@ Target "run" (fun _ ->
   ==> "Build"
   ==> "Deploy"
 
+"Clean"
+  ==> "Build"
+  ==> "run"
 // start build
 RunTargetOrDefault "Build"
